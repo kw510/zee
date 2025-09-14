@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package z.api.v1;
+
+service ApiService {
+  rpc Check(CheckRequest) returns (CheckResponse);
+	rpc Write(WriteRequest) returns (WriteResponse);
+}
+
+message Set {
+	string namespace = 1;
+	string id       = 2;
+	string relation = 3;
+}
+
+message Tuple {
+	Set parent = 1;
+	Set child  = 2;
+}
+
+message CheckRequest {
+  Set parent = 1;
+  Set child = 2;
+}
+
+message CheckResponse {
+  bool ok = 1;
+}
+
+message WriteRequest {
+  repeated Tuple adds = 1;
+  repeated Tuple removes = 2;
+}
+
+message WriteResponse {}

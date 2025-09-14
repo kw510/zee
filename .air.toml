@@ -1,0 +1,7 @@
+root = "."
+tmp_dir = "bin"
+
+[build]
+  cmd = "go build -o bin/z main.go"
+  bin = "bin/z"
+  include_ext = ["go"]
