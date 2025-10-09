@@ -187,7 +187,7 @@ func (x *CheckRequest) GetChild() *Set {
 
 type CheckResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Allowed       bool                   `protobuf:"varint,1,opt,name=allowed,proto3" json:"allowed,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -222,9 +222,9 @@ func (*CheckResponse) Descriptor() ([]byte, []int) {
 	return file_z_api_v1_api_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *CheckResponse) GetOk() bool {
+func (x *CheckResponse) GetAllowed() bool {
 	if x != nil {
-		return x.Ok
+		return x.Allowed
 	}
 	return false
 }
@@ -331,9 +331,9 @@ const file_z_api_v1_api_proto_rawDesc = "" +
 	"\x05child\x18\x02 \x01(\v2\r.z.api.v1.SetR\x05child\"Z\n" +
 	"\fCheckRequest\x12%\n" +
 	"\x06parent\x18\x01 \x01(\v2\r.z.api.v1.SetR\x06parent\x12#\n" +
-	"\x05child\x18\x02 \x01(\v2\r.z.api.v1.SetR\x05child\"\x1f\n" +
-	"\rCheckResponse\x12\x0e\n" +
-	"\x02ok\x18\x01 \x01(\bR\x02ok\"^\n" +
+	"\x05child\x18\x02 \x01(\v2\r.z.api.v1.SetR\x05child\")\n" +
+	"\rCheckResponse\x12\x18\n" +
+	"\aallowed\x18\x01 \x01(\bR\aallowed\"^\n" +
 	"\fWriteRequest\x12#\n" +
 	"\x04adds\x18\x01 \x03(\v2\x0f.z.api.v1.TupleR\x04adds\x12)\n" +
 	"\aremoves\x18\x02 \x03(\v2\x0f.z.api.v1.TupleR\aremoves\"\x0f\n" +

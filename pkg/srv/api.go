@@ -34,7 +34,7 @@ func (srv *ApiServer) Check(ctx context.Context, req *connect.Request[apiv1.Chec
 	if exists {
 		return &connect.Response[apiv1.CheckResponse]{
 			Msg: &apiv1.CheckResponse{
-				Ok: true,
+				Allowed: true,
 			},
 		}, nil
 	}
@@ -63,17 +63,17 @@ func (srv *ApiServer) Check(ctx context.Context, req *connect.Request[apiv1.Chec
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
-		if res.Msg.Ok {
+		if res.Msg.Allowed {
 			return &connect.Response[apiv1.CheckResponse]{
 				Msg: &apiv1.CheckResponse{
-					Ok: true,
+					Allowed: true,
 				},
 			}, nil
 		}
 	}
 	return &connect.Response[apiv1.CheckResponse]{
 		Msg: &apiv1.CheckResponse{
-			Ok: false,
+			Allowed: false,
 		},
 	}, nil
 }

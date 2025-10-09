@@ -24,7 +24,7 @@ message CheckRequest {
 }
 
 message CheckResponse {
-  bool ok = 1;
+  bool allowed = 1;
 }
 
 message WriteRequest {
