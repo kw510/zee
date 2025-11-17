@@ -123,3 +123,60 @@ func (srv *ApiServer) Write(ctx context.Context, req *connect.Request[apiv1.Writ
 	}
 	return &connect.Response[apiv1.WriteResponse]{}, nil
 }
+
+func (srv *ApiServer) WriteNamespaceRelations(ctx context.Context, req *connect.Request[apiv1.WriteNamespaceRelationsRequest]) (*connect.Response[apiv1.WriteNamespaceRelationsResponse], error) {
+	err := db.Tx(ctx, func(ctx context.Context, tx pgx.Tx) error {
+		for _, namespaceRelation := range req.Msg.GetAdds() {
+			r := db.Relation{
+				Namespace:  namespaceRelation.GetNamespace(),
+				Relation:   namespaceRelation.GetRelation(),
+				Permission: namespaceRelation.GetPermission(),
+			}
+			err := r.CreateTx(ctx, tx)
+			if err != nil {
+				return fmt.Errorf("failed to create relation: %w", err)
+			}
+		}
+		for _, namespaceRelation := range req.Msg.GetRemoves() {
+			r := db.Relation{
+				Namespace:  namespaceRelation.GetNamespace(),
+				Relation:   namespaceRelation.GetRelation(),
+				Permission: namespaceRelation.GetPermission(),
+			}
+			err := r.DeleteTx(ctx, tx)
+			if err != nil {
+				return fmt.Errorf("failed to delete relation: %w", err)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	return &connect.Response[apiv1.WriteNamespaceRelationsResponse]{}, nil
+}
+
+func (srv *ApiServer) Namespaces(ctx context.Context, req *connect.Request[apiv1.NamespacesRequest]) (*connect.Response[apiv1.NamespacesResponse], error) {
+	relations, err := db.Relation{}.List(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	namespaces := map[string]*apiv1.Namespace{}
+	for _, r := range relations {
+		if _, ok := namespaces[r.Namespace]; !ok {
+			namespaces[r.Namespace] = &apiv1.Namespace{}
+			namespaces[r.Namespace].Relations = map[string]*apiv1.Relation{}
+		}
+		if _, ok := namespaces[r.Namespace].Relations[r.Relation]; !ok {
+			namespaces[r.Namespace].Relations[r.Relation] = &apiv1.Relation{}
+		}
+		namespaces[r.Namespace].Relations[r.Relation].Permissions = append(namespaces[r.Namespace].Relations[r.Relation].Permissions, r.Permission)
+	}
+
+	return &connect.Response[apiv1.NamespacesResponse]{
+		Msg: &apiv1.NamespacesResponse{
+			Namespaces: namespaces,
+		},
+	}, nil
+}

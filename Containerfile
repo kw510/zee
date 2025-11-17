@@ -13,12 +13,12 @@ RUN go mod download
 # Build a static application binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./tmp/main
 
-## Development stage
+## Development stage, using air for hot reloading
 FROM builder AS development
 RUN go install github.com/air-verse/air@latest
 CMD ["air", "-c", ".air.toml"]
 
-## Production stage
+## Production stage, using a static binary and scratch image
 FROM scratch
 COPY --from=builder /app/tmp/main /app
 CMD ["/app"]

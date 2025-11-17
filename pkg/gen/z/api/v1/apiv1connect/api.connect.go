@@ -37,12 +37,19 @@ const (
 	ApiServiceCheckProcedure = "/z.api.v1.ApiService/Check"
 	// ApiServiceWriteProcedure is the fully-qualified name of the ApiService's Write RPC.
 	ApiServiceWriteProcedure = "/z.api.v1.ApiService/Write"
+	// ApiServiceNamespacesProcedure is the fully-qualified name of the ApiService's Namespaces RPC.
+	ApiServiceNamespacesProcedure = "/z.api.v1.ApiService/Namespaces"
+	// ApiServiceWriteNamespaceRelationsProcedure is the fully-qualified name of the ApiService's
+	// WriteNamespaceRelations RPC.
+	ApiServiceWriteNamespaceRelationsProcedure = "/z.api.v1.ApiService/WriteNamespaceRelations"
 )
 
 // ApiServiceClient is a client for the z.api.v1.ApiService service.
 type ApiServiceClient interface {
 	Check(context.Context, *connect.Request[v1.CheckRequest]) (*connect.Response[v1.CheckResponse], error)
 	Write(context.Context, *connect.Request[v1.WriteRequest]) (*connect.Response[v1.WriteResponse], error)
+	Namespaces(context.Context, *connect.Request[v1.NamespacesRequest]) (*connect.Response[v1.NamespacesResponse], error)
+	WriteNamespaceRelations(context.Context, *connect.Request[v1.WriteNamespaceRelationsRequest]) (*connect.Response[v1.WriteNamespaceRelationsResponse], error)
 }
 
 // NewApiServiceClient constructs a client for the z.api.v1.ApiService service. By default, it uses
@@ -68,13 +75,27 @@ func NewApiServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(apiServiceMethods.ByName("Write")),
 			connect.WithClientOptions(opts...),
 		),
+		namespaces: connect.NewClient[v1.NamespacesRequest, v1.NamespacesResponse](
+			httpClient,
+			baseURL+ApiServiceNamespacesProcedure,
+			connect.WithSchema(apiServiceMethods.ByName("Namespaces")),
+			connect.WithClientOptions(opts...),
+		),
+		writeNamespaceRelations: connect.NewClient[v1.WriteNamespaceRelationsRequest, v1.WriteNamespaceRelationsResponse](
+			httpClient,
+			baseURL+ApiServiceWriteNamespaceRelationsProcedure,
+			connect.WithSchema(apiServiceMethods.ByName("WriteNamespaceRelations")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // apiServiceClient implements ApiServiceClient.
 type apiServiceClient struct {
-	check *connect.Client[v1.CheckRequest, v1.CheckResponse]
-	write *connect.Client[v1.WriteRequest, v1.WriteResponse]
+	check                   *connect.Client[v1.CheckRequest, v1.CheckResponse]
+	write                   *connect.Client[v1.WriteRequest, v1.WriteResponse]
+	namespaces              *connect.Client[v1.NamespacesRequest, v1.NamespacesResponse]
+	writeNamespaceRelations *connect.Client[v1.WriteNamespaceRelationsRequest, v1.WriteNamespaceRelationsResponse]
 }
 
 // Check calls z.api.v1.ApiService.Check.
@@ -87,10 +108,22 @@ func (c *apiServiceClient) Write(ctx context.Context, req *connect.Request[v1.Wr
 	return c.write.CallUnary(ctx, req)
 }
 
+// Namespaces calls z.api.v1.ApiService.Namespaces.
+func (c *apiServiceClient) Namespaces(ctx context.Context, req *connect.Request[v1.NamespacesRequest]) (*connect.Response[v1.NamespacesResponse], error) {
+	return c.namespaces.CallUnary(ctx, req)
+}
+
+// WriteNamespaceRelations calls z.api.v1.ApiService.WriteNamespaceRelations.
+func (c *apiServiceClient) WriteNamespaceRelations(ctx context.Context, req *connect.Request[v1.WriteNamespaceRelationsRequest]) (*connect.Response[v1.WriteNamespaceRelationsResponse], error) {
+	return c.writeNamespaceRelations.CallUnary(ctx, req)
+}
+
 // ApiServiceHandler is an implementation of the z.api.v1.ApiService service.
 type ApiServiceHandler interface {
 	Check(context.Context, *connect.Request[v1.CheckRequest]) (*connect.Response[v1.CheckResponse], error)
 	Write(context.Context, *connect.Request[v1.WriteRequest]) (*connect.Response[v1.WriteResponse], error)
+	Namespaces(context.Context, *connect.Request[v1.NamespacesRequest]) (*connect.Response[v1.NamespacesResponse], error)
+	WriteNamespaceRelations(context.Context, *connect.Request[v1.WriteNamespaceRelationsRequest]) (*connect.Response[v1.WriteNamespaceRelationsResponse], error)
 }
 
 // NewApiServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -112,12 +145,28 @@ func NewApiServiceHandler(svc ApiServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(apiServiceMethods.ByName("Write")),
 		connect.WithHandlerOptions(opts...),
 	)
+	apiServiceNamespacesHandler := connect.NewUnaryHandler(
+		ApiServiceNamespacesProcedure,
+		svc.Namespaces,
+		connect.WithSchema(apiServiceMethods.ByName("Namespaces")),
+		connect.WithHandlerOptions(opts...),
+	)
+	apiServiceWriteNamespaceRelationsHandler := connect.NewUnaryHandler(
+		ApiServiceWriteNamespaceRelationsProcedure,
+		svc.WriteNamespaceRelations,
+		connect.WithSchema(apiServiceMethods.ByName("WriteNamespaceRelations")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/z.api.v1.ApiService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ApiServiceCheckProcedure:
 			apiServiceCheckHandler.ServeHTTP(w, r)
 		case ApiServiceWriteProcedure:
 			apiServiceWriteHandler.ServeHTTP(w, r)
+		case ApiServiceNamespacesProcedure:
+			apiServiceNamespacesHandler.ServeHTTP(w, r)
+		case ApiServiceWriteNamespaceRelationsProcedure:
+			apiServiceWriteNamespaceRelationsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -133,4 +182,12 @@ func (UnimplementedApiServiceHandler) Check(context.Context, *connect.Request[v1
 
 func (UnimplementedApiServiceHandler) Write(context.Context, *connect.Request[v1.WriteRequest]) (*connect.Response[v1.WriteResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("z.api.v1.ApiService.Write is not implemented"))
+}
+
+func (UnimplementedApiServiceHandler) Namespaces(context.Context, *connect.Request[v1.NamespacesRequest]) (*connect.Response[v1.NamespacesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("z.api.v1.ApiService.Namespaces is not implemented"))
+}
+
+func (UnimplementedApiServiceHandler) WriteNamespaceRelations(context.Context, *connect.Request[v1.WriteNamespaceRelationsRequest]) (*connect.Response[v1.WriteNamespaceRelationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("z.api.v1.ApiService.WriteNamespaceRelations is not implemented"))
 }

@@ -5,6 +5,8 @@ package z.api.v1;
 service ApiService {
   rpc Check(CheckRequest) returns (CheckResponse);
 	rpc Write(WriteRequest) returns (WriteResponse);
+  rpc Namespaces(NamespacesRequest) returns (NamespacesResponse);
+  rpc WriteNamespaceRelations(WriteNamespaceRelationsRequest) returns (WriteNamespaceRelationsResponse);
 }
 
 message Set {
@@ -16,6 +18,14 @@ message Set {
 message Tuple {
 	Set parent = 1;
 	Set child  = 2;
+}
+
+message Relation {
+  repeated string permissions = 1;
+}
+
+message Namespace {
+  map<string, Relation> relations = 1;
 }
 
 message CheckRequest {
@@ -33,3 +43,22 @@ message WriteRequest {
 }
 
 message WriteResponse {}
+
+message NamespacesRequest {}
+
+message NamespacesResponse {
+  map<string, Namespace> namespaces = 1;
+}
+
+message NamespaceRelation {
+  string namespace = 1;
+  string relation = 2;
+  string permission = 3;
+}
+
+message WriteNamespaceRelationsRequest {
+  repeated NamespaceRelation adds = 1;
+  repeated NamespaceRelation removes = 2;
+}
+
+message WriteNamespaceRelationsResponse {}
